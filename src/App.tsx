@@ -22,6 +22,7 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import PasswordResetPage from "./pages/PasswordResetPage";
 import CookieConsent from "./components/CookieConsent";
+import AuthConfirmPage from "./pages/AuthConfirmPage";
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -95,6 +96,8 @@ function AppContent() {
 						<Route path="/profil/:id" element={<ProfilePage />} />
 						<Route path="/admin" element={<AdminPage />} />
 						<Route path="/auth" element={<AuthPage />} />
+						<Route path="/auth/confirm" element={<AuthConfirmPage />} />
+
 						<Route
 							path="/auth/reset-password"
 							element={<PasswordResetPage />}

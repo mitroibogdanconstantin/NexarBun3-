@@ -254,20 +254,19 @@ const AuthPage = () => {
 	const checkEmailExists = async (email: string): Promise<boolean> => {
 		try {
 			setIsValidating(true);
-			
+
 			// Verificăm direct în tabela auth.users dacă există email-ul
 			const { count, error } = await supabase
-				.from('profiles')
-				.select('*', { count: 'exact', head: true })
-				.eq('email', email.trim());
-			
+				.from("profiles")
+				.select("*", { count: "exact", head: true })
+				.eq("email", email.trim());
+
 			if (error) {
 				console.error("Error checking email existence:", error);
 				return false;
 			}
-			
+
 			return count ? count > 0 : false;
-			
 		} catch (err) {
 			console.error("Error checking email:", err);
 			return false;
@@ -309,7 +308,8 @@ const AuthPage = () => {
 			if (!emailError) {
 				const emailExists = await checkEmailExists(formData.email.trim());
 				if (emailExists) {
-					errors.email = "Acest email este deja înregistrat. Încearcă să te conectezi în schimb.";
+					errors.email =
+						"Acest email este deja înregistrat. Încearcă să te conectezi în schimb.";
 				}
 			}
 
@@ -941,17 +941,19 @@ const AuthPage = () => {
 										Ține-mă conectat
 									</span>
 								</label>
-								<button
-									type="button"
-									onClick={() => {
-										setIsResetPassword(true);
-										setError("");
-										setSuccessMessage("");
-									}}
-									className="text-sm text-nexar-accent hover:text-nexar-gold transition-colors"
-								>
-									Ai uitat parola?
-								</button>
+								{/*
+<button
+  type="button"
+  onClick={() => {
+    setIsResetPassword(true);
+    setError("");
+    setSuccessMessage("");
+  }}
+  className="text-sm text-nexar-accent hover:text-nexar-gold transition-colors"
+>
+  Ai uitat parola?
+</button>
+*/}
 							</div>
 						)}
 

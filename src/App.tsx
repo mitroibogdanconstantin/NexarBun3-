@@ -43,7 +43,6 @@ function useAppVisibility() {
 		const handleReload = () => {
 			if (
 				location.pathname === "/" ||
-				location.pathname.startsWith("/profil") ||
 				location.pathname.startsWith("/anunt") ||
 				location.pathname.startsWith("/admin")
 			) {

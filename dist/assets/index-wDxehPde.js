@@ -19183,7 +19183,7 @@ const Sy = "https://tidnmzsivsthwwcfdzyo.supabase.co",
 									e.jsx("p", {
 										className: "text-gray-300 leading-relaxed text-sm",
 										children:
-											"Cel mai premium marketplace pentru motociclete din România. Găsește sau vinde motocicleta perfectă cu încredere și siguranță.",
+											"Cel mai exclusivist marketplace România. Vinde sau descoperă motocicleta perfectă pe Nexar.ro.",
 									}),
 									e.jsxs("div", {
 										className: "flex space-x-4",
@@ -32874,7 +32874,7 @@ END $$;`,
 								e.jsx("p", {
 									className: "text-lg text-gray-700 mb-6",
 									children:
-										"Nexar este cel mai premium marketplace pentru motociclete din România, dedicat pasionaților de două roți care caută excelența în fiecare detaliu.",
+										"Nexar este cel mai exclusivist marketplace pentru motociclete din România, dedicat pasionaților de două roți care caută excelența în fiecare detaliu.",
 								}),
 								e.jsx("h2", {
 									className: "text-2xl font-bold text-gray-900 mb-4",

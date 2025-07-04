@@ -65,15 +65,18 @@ const AdminPage = () => {
 			// Încarcă datele în funcție de tab-ul activ
 			if (activeTab === "listings") {
 				await loadAllListings();
-			} else if (activeTab === "users") {
-				await loadUsers();
 			}
+			// else if (activeTab === "users") {
+			// 	await loadUsers();
+			// }
 		} catch (err: any) {
 			console.error("Error checking admin status:", err);
-			if (err.message?.includes('fetch') || err.message?.includes('network')) {
+			if (err.message?.includes("fetch") || err.message?.includes("network")) {
 				setNetworkError(err);
 			} else {
-				setError("A apărut o eroare la verificarea statusului de administrator.");
+				setError(
+					"A apărut o eroare la verificarea statusului de administrator.",
+				);
 			}
 		} finally {
 			setIsLoading(false);
@@ -104,7 +107,10 @@ const AdminPage = () => {
 
 			if (error) {
 				console.error("Error loading listings:", error);
-				if (error.message?.includes('fetch') || error.message?.includes('network')) {
+				if (
+					error.message?.includes("fetch") ||
+					error.message?.includes("network")
+				) {
 					setNetworkError(error);
 				} else {
 					setError("Nu s-au putut încărca anunțurile.");
@@ -116,7 +122,7 @@ const AdminPage = () => {
 			setListings(data || []);
 		} catch (err: any) {
 			console.error("Error loading listings:", err);
-			if (err.message?.includes('fetch') || err.message?.includes('network')) {
+			if (err.message?.includes("fetch") || err.message?.includes("network")) {
 				setNetworkError(err);
 			} else {
 				setError("A apărut o eroare la încărcarea anunțurilor.");
@@ -126,36 +132,36 @@ const AdminPage = () => {
 		}
 	};
 
-	const loadUsers = async () => {
-		try {
-			setIsLoading(true);
-			setError(null);
-			setNetworkError(null);
+	// const loadUsers = async () => {
+	// 	try {
+	// 		setIsLoading(true);
+	// 		setError(null);
+	// 		setNetworkError(null);
 
-			const { data, error } = await admin.getAllUsers();
+	// 		const { data, error } = await admin.getAllUsers();
 
-			if (error) {
-				console.error("Error loading users:", error);
-				if (error.message?.includes('fetch') || error.message?.includes('network')) {
-					setNetworkError(error);
-				} else {
-					setError("Nu s-au putut încărca utilizatorii.");
-				}
-				return;
-			}
+	// 		if (error) {
+	// 			console.error("Error loading users:", error);
+	// 			if (error.message?.includes('fetch') || error.message?.includes('network')) {
+	// 				setNetworkError(error);
+	// 			} else {
+	// 				setError("Nu s-au putut încărca utilizatorii.");
+	// 			}
+	// 			return;
+	// 		}
 
-			setUsers(data || []);
-		} catch (err: any) {
-			console.error("Error loading users:", err);
-			if (err.message?.includes('fetch') || err.message?.includes('network')) {
-				setNetworkError(err);
-			} else {
-				setError("A apărut o eroare la încărcarea utilizatorilor.");
-			}
-		} finally {
-			setIsLoading(false);
-		}
-	};
+	// 		setUsers(data || []);
+	// 	} catch (err: any) {
+	// 		console.error("Error loading users:", err);
+	// 		if (err.message?.includes('fetch') || err.message?.includes('network')) {
+	// 			setNetworkError(err);
+	// 		} else {
+	// 			setError("A apărut o eroare la încărcarea utilizatorilor.");
+	// 		}
+	// 	} finally {
+	// 		setIsLoading(false);
+	// 	}
+	// };
 
 	const handleTabChange = async (tab: string) => {
 		setActiveTab(tab);
@@ -164,9 +170,10 @@ const AdminPage = () => {
 
 		if (tab === "listings" && listings.length === 0) {
 			await loadAllListings();
-		} else if (tab === "users" && users.length === 0) {
-			await loadUsers();
 		}
+		// else if (tab === "users" && users.length === 0) {
+		// 	await loadUsers();
+		// }
 	};
 
 	const handleUpdateListingStatus = async (
@@ -233,89 +240,89 @@ const AdminPage = () => {
 		}
 	};
 
-	const handleToggleUserStatus = async (userId: string, suspended: boolean) => {
-		try {
-			setIsProcessing((prev) => ({ ...prev, [userId]: true }));
+	// const handleToggleUserStatus = async (userId: string, suspended: boolean) => {
+	// 	try {
+	// 		setIsProcessing((prev) => ({ ...prev, [userId]: true }));
 
-			const { error } = await admin.toggleUserStatus(userId, suspended);
+	// 		const { error } = await admin.toggleUserStatus(userId, suspended);
 
-			if (error) {
-				console.error("Error toggling user status:", error);
-				alert(
-					`Eroare la ${
-						suspended ? "suspendarea" : "activarea"
-					} utilizatorului: ${error.message}`,
-				);
-				return;
-			}
+	// 		if (error) {
+	// 			console.error("Error toggling user status:", error);
+	// 			alert(
+	// 				`Eroare la ${
+	// 					suspended ? "suspendarea" : "activarea"
+	// 				} utilizatorului: ${error.message}`,
+	// 			);
+	// 			return;
+	// 		}
 
-			// Actualizează lista de utilizatori
-			setUsers((prev) =>
-				prev.map((user) =>
-					user.user_id === userId ? { ...user, suspended } : user,
-				),
-			);
+	// 		// Actualizează lista de utilizatori
+	// 		setUsers((prev) =>
+	// 			prev.map((user) =>
+	// 				user.user_id === userId ? { ...user, suspended } : user,
+	// 			),
+	// 		);
 
-			alert(
-				`Utilizatorul a fost ${suspended ? "suspendat" : "activat"} cu succes!`,
-			);
-		} catch (err) {
-			console.error("Error toggling user status:", err);
-			alert(
-				`A apărut o eroare la ${
-					suspended ? "suspendarea" : "activarea"
-				} utilizatorului.`,
-			);
-		} finally {
-			setIsProcessing((prev) => ({ ...prev, [userId]: false }));
-		}
-	};
+	// 		alert(
+	// 			`Utilizatorul a fost ${suspended ? "suspendat" : "activat"} cu succes!`,
+	// 		);
+	// 	} catch (err) {
+	// 		console.error("Error toggling user status:", err);
+	// 		alert(
+	// 			`A apărut o eroare la ${
+	// 				suspended ? "suspendarea" : "activarea"
+	// 			} utilizatorului.`,
+	// 		);
+	// 	} finally {
+	// 		setIsProcessing((prev) => ({ ...prev, [userId]: false }));
+	// 	}
+	// };
 
-	const handleDeleteUser = async (userId: string) => {
-		if (
-			!confirm(
-				"ATENȚIE: Această acțiune va șterge utilizatorul și TOATE anunțurile asociate din baza de date. Contul de autentificare va rămâne activ din motive de securitate. Ești sigur că vrei să continui?",
-			)
-		)
-			return;
+	// const handleDeleteUser = async (userId: string) => {
+	// 	if (
+	// 		!confirm(
+	// 			"ATENȚIE: Această acțiune va șterge utilizatorul și TOATE anunțurile asociate din baza de date. Contul de autentificare va rămâne activ din motive de securitate. Ești sigur că vrei să continui?",
+	// 		)
+	// 	)
+	// 		return;
 
-		try {
-			setIsProcessing((prev) => ({ ...prev, [userId]: true }));
+	// 	try {
+	// 		setIsProcessing((prev) => ({ ...prev, [userId]: true }));
 
-			// Folosim funcția RPC pentru a șterge utilizatorul și toate datele asociate
-			const { data, error } = await supabase.rpc('delete_user_complete', {
-				user_id_to_delete: userId
-			});
+	// 		// Folosim funcția RPC pentru a șterge utilizatorul și toate datele asociate
+	// 		const { data, error } = await supabase.rpc('delete_user_complete', {
+	// 			user_id_to_delete: userId
+	// 		});
 
-			if (error) {
-				console.error("Error deleting user:", error);
-				alert(`Eroare la ștergerea utilizatorului: ${error.message}`);
-				setIsProcessing((prev) => ({ ...prev, [userId]: false }));
-				return;
-			}
+	// 		if (error) {
+	// 			console.error("Error deleting user:", error);
+	// 			alert(`Eroare la ștergerea utilizatorului: ${error.message}`);
+	// 			setIsProcessing((prev) => ({ ...prev, [userId]: false }));
+	// 			return;
+	// 		}
 
-			if (!data) {
-				alert("Eroare la ștergerea utilizatorului: Nu s-a găsit profilul utilizatorului");
-				setIsProcessing((prev) => ({ ...prev, [userId]: false }));
-				return;
-			}
+	// 		if (!data) {
+	// 			alert("Eroare la ștergerea utilizatorului: Nu s-a găsit profilul utilizatorului");
+	// 			setIsProcessing((prev) => ({ ...prev, [userId]: false }));
+	// 			return;
+	// 		}
 
-			// Eliminăm utilizatorul din listă
-			setUsers((prev) => prev.filter((user) => user.user_id !== userId));
+	// 		// Eliminăm utilizatorul din listă
+	// 		setUsers((prev) => prev.filter((user) => user.user_id !== userId));
 
-			// Reîncarcă și anunțurile pentru a reflecta ștergerea
-			await loadAllListings();
+	// 		// Reîncarcă și anunțurile pentru a reflecta ștergerea
+	// 		await loadAllListings();
 
-			alert(
-				"Utilizatorul și toate anunțurile asociate au fost șterse cu succes din baza de date!",
-			);
-		} catch (err) {
-			console.error("Error deleting user:", err);
-			alert("A apărut o eroare la ștergerea utilizatorului.");
-		} finally {
-			setIsProcessing((prev) => ({ ...prev, [userId]: false }));
-		}
-	};
+	// 		alert(
+	// 			"Utilizatorul și toate anunțurile asociate au fost șterse cu succes din baza de date!",
+	// 		);
+	// 	} catch (err) {
+	// 		console.error("Error deleting user:", err);
+	// 		alert("A apărut o eroare la ștergerea utilizatorului.");
+	// 	} finally {
+	// 		setIsProcessing((prev) => ({ ...prev, [userId]: false }));
+	// 	}
+	// };
 
 	const handleViewListing = (listingId: string) => {
 		window.open(`/anunt/${listingId}`, "_blank");
@@ -325,9 +332,9 @@ const AdminPage = () => {
 		navigate(`/editeaza-anunt/${listingId}`);
 	};
 
-	const handleViewProfile = (userId: string) => {
-		navigate(`/profil/${userId}`);
-	};
+	// const handleViewProfile = (userId: string) => {
+	// 	navigate(`/profil/${userId}`);
+	// };
 
 	const filteredListings = listings.filter((listing) => {
 		const matchesSearch =
@@ -344,13 +351,13 @@ const AdminPage = () => {
 	});
 
 	// Filtrare utilizatori
-	const filteredUsers = users.filter((user) => {
-		return (
-			!searchQuery ||
-			user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			user.email?.toLowerCase().includes(searchQuery.toLowerCase())
-		);
-	});
+	// const filteredUsers = users.filter((user) => {
+	// 	return (
+	// 		!searchQuery ||
+	// 		user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+	// 		user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+	// 	);
+	// });
 
 	// Loading state
 	if (isLoading && !listings.length && !users.length) {
@@ -368,9 +375,9 @@ const AdminPage = () => {
 	if (networkError) {
 		return (
 			<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-				<NetworkErrorHandler 
-					error={networkError} 
-					onRetry={checkAdminAndLoadData} 
+				<NetworkErrorHandler
+					error={networkError}
+					onRetry={checkAdminAndLoadData}
 				/>
 			</div>
 		);
@@ -422,7 +429,7 @@ const AdminPage = () => {
 							<Package className="h-5 w-5" />
 							<span>Anunțuri</span>
 						</button>
-						<button
+						{/* <button
 							onClick={() => handleTabChange("users")}
 							className={`flex items-center space-x-2 px-6 py-4 font-semibold transition-colors ${
 								activeTab === "users"
@@ -432,7 +439,7 @@ const AdminPage = () => {
 						>
 							<Users className="h-5 w-5" />
 							<span>Utilizatori</span>
-						</button>
+						</button> */}
 					</div>
 
 					{/* Search Bar */}
@@ -578,10 +585,11 @@ const AdminPage = () => {
 												<td className="px-6 py-4 whitespace-nowrap">
 													<div className="flex items-center">
 														<div className="text-sm font-medium text-gray-900">
-															{listing.seller_name}
+															{listing.profiles?.name || "N/A"}{" "}
+															{/* Access through profiles relationship */}
 														</div>
 														<div className="ml-2">
-															{listing.seller_type === "dealer" ? (
+															{listing.profiles?.seller_type === "dealer" ? (
 																<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
 																	Dealer Verificat
 																</span>
@@ -595,27 +603,30 @@ const AdminPage = () => {
 													<div className="text-sm text-gray-500">
 														{listing.location}
 													</div>
-													{listing.seller_type === "dealer" && listing.availability && (
-														<div className="mt-1">
-															<span className={`px-2 py-1 inline-flex text-xs leading-4 font-medium rounded-full ${
-																listing.availability === "pe_stoc" 
-																	? "bg-green-100 text-green-800" 
-																	: "bg-blue-100 text-blue-800"
-															}`}>
-																{listing.availability === "pe_stoc" ? (
-																	<>
-																		<Store className="h-3 w-3 mr-1" />
-																		Pe stoc
-																	</>
-																) : (
-																	<>
-																		<Clock className="h-3 w-3 mr-1" />
-																		La comandă
-																	</>
-																)}
-															</span>
-														</div>
-													)}
+													{listing.profiles?.seller_type === "dealer" &&
+														listing.availability && (
+															<div className="mt-1">
+																<span
+																	className={`px-2 py-1 inline-flex text-xs leading-4 font-medium rounded-full ${
+																		listing.availability === "pe_stoc"
+																			? "bg-green-100 text-green-800"
+																			: "bg-blue-100 text-blue-800"
+																	}`}
+																>
+																	{listing.availability === "pe_stoc" ? (
+																		<>
+																			<Store className="h-3 w-3 mr-1" />
+																			Pe stoc
+																		</>
+																	) : (
+																		<>
+																			<Clock className="h-3 w-3 mr-1" />
+																			La comandă
+																		</>
+																	)}
+																</span>
+															</div>
+														)}
 												</td>
 												<td className="px-6 py-4 whitespace-nowrap">
 													<span
@@ -789,7 +800,7 @@ const AdminPage = () => {
 					)}
 
 					{/* Users Tab */}
-					{activeTab === "users" && (
+					{/* {activeTab === "users" && (
 						<div className="overflow-x-auto">
 							{isLoading && users.length === 0 ? (
 								<div className="p-8 text-center">
@@ -983,7 +994,7 @@ const AdminPage = () => {
 								</table>
 							)}
 						</div>
-					)}
+					)} */}
 
 					{/* Footer */}
 					<div className="p-6 bg-gray-50 border-t border-gray-200">
@@ -991,16 +1002,17 @@ const AdminPage = () => {
 							<div className="text-sm text-gray-600">
 								{activeTab === "listings"
 									? `${filteredListings.length} anunțuri`
-									: `${filteredUsers.length} utilizatori`}
+									: `${users.length} utilizatori`}
 							</div>
 							<div className="flex space-x-3">
 								<button
 									onClick={() => {
 										if (activeTab === "listings") {
 											loadAllListings();
-										} else {
-											loadUsers();
 										}
+										// else {
+										// 	loadUsers();
+										// }
 									}}
 									className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors"
 								>

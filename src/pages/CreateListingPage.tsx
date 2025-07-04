@@ -1107,94 +1107,92 @@ const CreateListingPage = () => {
 					)}
 
 					{/* Step 3: Description and Price */}
-					{currentStep === 3 &&
-						(window.scrollTo(0, 0),
-						(
-							<div className="space-y-6 animate-fade-in">
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">
-										Preț (EUR) *
-									</label>
-									<input
-										type="number"
-										value={formData.price}
-										onChange={(e) => handleInputChange("price", e.target.value)}
-										className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-900 focus:border-transparent text-2xl font-bold ${
-											errors.price ? "border-red-500" : "border-gray-300"
-										}`}
-										placeholder="18500"
-										min="100"
-										max="1000000"
-									/>
-									{errors.price && (
+					{currentStep === 3 && (
+						<div className="space-y-6 animate-fade-in">
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Preț (EUR) *
+								</label>
+								<input
+									type="number"
+									value={formData.price}
+									onChange={(e) => handleInputChange("price", e.target.value)}
+									className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-900 focus:border-transparent text-2xl font-bold ${
+										errors.price ? "border-red-500" : "border-gray-300"
+									}`}
+									placeholder="18500"
+									min="100"
+									max="1000000"
+								/>
+								{errors.price && (
+									<p className="mt-1 text-sm text-red-600 flex items-center">
+										<AlertTriangle className="h-4 w-4 mr-1" />
+										{errors.price}
+									</p>
+								)}
+							</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Descriere detaliată
+								</label>
+								<textarea
+									value={formData.description}
+									onChange={(e) =>
+										handleInputChange("description", e.target.value)
+									}
+									rows={8}
+									className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-900 focus:border-transparent ${
+										errors.description ? "border-red-500" : "border-gray-300"
+									}`}
+									placeholder="Descrie motocicleta în detaliu: starea tehnică, istoricul, modificările, etc."
+								/>
+								<div className="flex justify-between items-center mt-1">
+									{errors.description ? (
 										<p className="mt-1 text-sm text-red-600 flex items-center">
 											<AlertTriangle className="h-4 w-4 mr-1" />
-											{errors.price}
+											{errors.description}
+										</p>
+									) : (
+										<p className="text-sm text-gray-500">
+											Maxim 2000 caractere
 										</p>
 									)}
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">
-										Descriere detaliată
-									</label>
-									<textarea
-										value={formData.description}
-										onChange={(e) =>
-											handleInputChange("description", e.target.value)
-										}
-										rows={8}
-										className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-900 focus:border-transparent ${
-											errors.description ? "border-red-500" : "border-gray-300"
+									<span
+										className={`text-sm ${
+											formData.description.length > 2000
+												? "text-red-600"
+												: "text-green-600"
 										}`}
-										placeholder="Descrie motocicleta în detaliu: starea tehnică, istoricul, modificările, etc."
-									/>
-									<div className="flex justify-between items-center mt-1">
-										{errors.description ? (
-											<p className="mt-1 text-sm text-red-600 flex items-center">
-												<AlertTriangle className="h-4 w-4 mr-1" />
-												{errors.description}
-											</p>
-										) : (
-											<p className="text-sm text-gray-500">
-												Maxim 2000 caractere
-											</p>
-										)}
-										<span
-											className={`text-sm ${
-												formData.description.length > 2000
-													? "text-red-600"
-													: "text-green-600"
-											}`}
-										>
-											{formData.description.length}/2000
-										</span>
-									</div>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-4">
-										Dotări și caracteristici
-									</label>
-									<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-										{availableFeatures.map((feature) => (
-											<label
-												key={feature}
-												className="flex items-center space-x-2 cursor-pointer"
-											>
-												<input
-													type="checkbox"
-													checked={formData.features.includes(feature)}
-													onChange={() => handleFeatureToggle(feature)}
-													className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
-												/>
-												<span className="text-sm">{feature}</span>
-											</label>
-										))}
-									</div>
+									>
+										{formData.description.length}/2000
+									</span>
 								</div>
 							</div>
-						))}
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-4">
+									Dotări și caracteristici
+								</label>
+								<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+									{availableFeatures.map((feature) => (
+										<label
+											key={feature}
+											className="flex items-center space-x-2 cursor-pointer"
+										>
+											<input
+												type="checkbox"
+												checked={formData.features.includes(feature)}
+												onChange={() => handleFeatureToggle(feature)}
+												className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+											/>
+											<span className="text-sm">{feature}</span>
+										</label>
+									))}
+								</div>
+							</div>
+						</div>
+					)}
 
 					{/* Step 4: Contact */}
 					{currentStep === 4 && (

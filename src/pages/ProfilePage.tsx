@@ -285,7 +285,6 @@ const ProfilePage = () => {
 
 			// Actualizăm și anunțurile cu noul nume
 			await loadUserListings(profile.id);
-			window.location.reload();
 			window.scrollTo(0, 0);
 
 			alert("Profilul a fost actualizat cu succes!");

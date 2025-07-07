@@ -518,10 +518,38 @@ const CreateListingPage = () => {
 			setShowSuccessModal(true);
 		} catch (error: any) {
 			console.error("💥 Error creating listing:", error);
+
+			// Afișează alert la client
+			alert(
+				"Eroare la trimiterea anunțului: " + (error.message || "necunoscută"),
+			);
+
+			// Salvează eroarea în tabelul 'error_logs' (dacă e autentificat)
+			try {
+				const { data: authUser } = await supabase.auth.getUser();
+				if (authUser?.user?.id) {
+					await supabase.from("error_logs").insert([
+						{
+							user_id: authUser.user.id,
+							message: error.message || "Eroare necunoscută",
+							full_error: JSON.stringify(error),
+							created_at: new Date().toISOString(),
+						},
+					]);
+					console.log("✅ Eroarea a fost salvată în Supabase");
+				}
+			} catch (logError) {
+				console.warn("❗ Nu am putut salva eroarea în Supabase:", logError);
+			}
+
+			// Afișează în pagină mesajul complet
 			setErrors({
 				submit:
-					error.message ||
-					"A apărut o eroare la publicarea anunțului. Te rog încearcă din nou.",
+					"Detalii tehnice: " +
+					JSON.stringify(error, null, 2) +
+					"\nMesaj: " +
+					(error.message ||
+						"A apărut o eroare necunoscută la publicarea anunțului."),
 			});
 		} finally {
 			setIsSubmitting(false);

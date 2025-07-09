@@ -21,7 +21,6 @@ import {
 	romanianCities,
 } from "../lib/supabase";
 import SuccessModal from "../components/SuccessModal";
-import FixSupabaseButton from "../components/FixSupabaseButton";
 
 const CreateListingPage = () => {
 	const [currentStep, setCurrentStep] = useState(1);
@@ -34,6 +33,11 @@ const CreateListingPage = () => {
 	const [showSuccessModal, setShowSuccessModal] = useState(false);
 	const [createdListingId, setCreatedListingId] = useState<string | null>(null);
 	const navigate = useNavigate();
+
+	// ✅ Referințe pentru cleanup și control
+	const isMountedRef = useRef(true);
+	const abortControllerRef = useRef<AbortController | null>(null);
+	const authCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	const [formData, setFormData] = useState({
 		title: "",
@@ -61,62 +65,144 @@ const CreateListingPage = () => {
 	const availabilityValue: Availability =
 		formData.availability === "la_comanda" ? "la_comanda" : "pe_stoc";
 
-	// Check if user is logged in and load profile
+	// ✅ Cleanup function
 	useEffect(() => {
-		checkAuthAndLoadProfile();
+		return () => {
+			console.log("🧹 Cleanup CreateListingPage component");
+			isMountedRef.current = false;
+			
+			// Anulăm toate request-urile în curs
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort();
+			}
+			
+			// Curățăm timeout-urile
+			if (authCheckTimeoutRef.current) {
+				clearTimeout(authCheckTimeoutRef.current);
+			}
+		};
 	}, []);
 
+	// ✅ Verificare dacă componenta este mounted
+	const safeSetState = (setter: Function, value: any) => {
+		if (isMountedRef.current) {
+			setter(value);
+		}
+	};
+
+	// ✅ Versiune îmbunătățită pentru verificarea auth
 	const checkAuthAndLoadProfile = async () => {
+		// Anulăm request-ul anterior dacă există
+		if (abortControllerRef.current) {
+			abortControllerRef.current.abort();
+		}
+
+		// Creăm un nou AbortController
+		abortControllerRef.current = new AbortController();
+		const signal = abortControllerRef.current.signal;
+
 		try {
-			setIsLoadingProfile(true);
+			console.log("🔍 Starting auth check...");
+			safeSetState(setIsLoadingProfile, true);
 
+			// Verificăm dacă utilizatorul este autentificat
 			const isLoggedIn = await isAuthenticated();
+			
+			if (signal.aborted || !isMountedRef.current) {
+				console.log("⚠️ Auth check aborted or component unmounted");
+				return;
+			}
+
 			if (!isLoggedIn) {
+				console.log("❌ User not authenticated, redirecting to auth");
 				navigate("/auth");
 				return;
 			}
 
-			// Get current user
-			const {
-				data: { user },
-			} = await supabase.auth.getUser();
-			if (!user) {
+			// Obținem utilizatorul curent
+			const { data: { user }, error: userError } = await supabase.auth.getUser();
+			
+			if (signal.aborted || !isMountedRef.current) {
+				console.log("⚠️ User fetch aborted or component unmounted");
+				return;
+			}
+
+			if (userError || !user) {
+				console.error("❌ Error getting user:", userError);
 				navigate("/auth");
 				return;
 			}
 
-			// Get user profile from database
+			// Obținem profilul utilizatorului
 			const { data: profileData, error: profileError } = await supabase
 				.from("profiles")
 				.select("*")
 				.eq("user_id", user.id)
+				.abortSignal(signal)
 				.single();
 
+			if (signal.aborted || !isMountedRef.current) {
+				console.log("⚠️ Profile fetch aborted or component unmounted");
+				return;
+			}
+
 			if (profileError) {
-				console.error("Error loading profile:", profileError);
-				// If profile doesn't exist, redirect to profile page to create it
-				navigate("/profil");
+				console.error("❌ Error loading profile:", profileError);
+				safeSetState(setErrors, prev => ({
+					...prev,
+					profile: "Nu am putut încărca profilul. Te rugăm să reîncerci."
+				}));
 				return;
 			}
 
 			if (profileData) {
-				setUserProfile(profileData);
-
-				// Pre-fill form with user data
-				setFormData((prev) => ({
+				console.log("✅ Profile loaded successfully");
+				safeSetState(setUserProfile, profileData);
+				safeSetState(setFormData, prev => ({
 					...prev,
 					email: profileData.email || "",
 					phone: profileData.phone || "",
-					location: "", // Reset location to empty string instead of pre-filling
+					location: "",
 				}));
 			}
-		} catch (error) {
-			console.error("Error checking auth and loading profile:", error);
-			navigate("/auth");
+
+		} catch (error: any) {
+			if (signal.aborted || !isMountedRef.current) {
+				console.log("⚠️ Auth check cancelled");
+				return;
+			}
+
+			console.error("💥 Error in auth check:", error);
+			safeSetState(setErrors, prev => ({
+				...prev,
+				profile: "Eroare la încărcarea profilului: " + error.message
+			}));
 		} finally {
-			setIsLoadingProfile(false);
+			if (isMountedRef.current) {
+				safeSetState(setIsLoadingProfile, false);
+			}
 		}
 	};
+
+	// ✅ Încărcăm profilul o singură dată
+	useEffect(() => {
+		// Debouncing pentru a evita multiple calls
+		if (authCheckTimeoutRef.current) {
+			clearTimeout(authCheckTimeoutRef.current);
+		}
+
+		authCheckTimeoutRef.current = setTimeout(() => {
+			if (isMountedRef.current) {
+				checkAuthAndLoadProfile();
+			}
+		}, 100);
+
+		return () => {
+			if (authCheckTimeoutRef.current) {
+				clearTimeout(authCheckTimeoutRef.current);
+			}
+		};
+	}, []); // Doar la mount
 
 	const steps = [
 		{
@@ -426,12 +512,18 @@ const CreateListingPage = () => {
 		if (currentStep > 1) setCurrentStep(currentStep - 1);
 	};
 
-	// ... alte logici ...
-
+	// ✅ Versiune îmbunătățită pentru submit
 	const handleSubmit = async () => {
 		if (!validateStep(4)) return;
 
-		setIsSubmitting(true);
+		// Verificăm dacă nu este deja în curs de trimitere
+		if (isSubmitting) {
+			console.log("⚠️ Submit already in progress, ignoring duplicate call");
+			return;
+		}
+
+		console.log("🚀 Starting submit process...");
+		safeSetState(setIsSubmitting, true);
 
 		try {
 			if (!userProfile) {
@@ -442,26 +534,15 @@ const CreateListingPage = () => {
 				await supabase.auth.getUser();
 
 			if (authError || !authUser) {
-				console.error(
-					"❌ Eroare la obținerea utilizatorului curent:",
-					authError,
-				);
+				console.error("❌ Eroare la obținerea utilizatorului curent:", authError);
 				throw new Error("Utilizatorul nu este autentificat");
 			}
-
-			console.log("🔐 UID din auth:", authUser.user.id);
-			console.log("🆔 seller_id din profil (user_id):", userProfile.user_id); // Log the correct user_id
-			console.log("🆔 id-ul profilului (id):", userProfile.id); // Log the profile id
 
 			if (userProfile.user_id !== authUser.user.id) {
 				console.error("🚫 Mismatch între userProfile.user_id și auth.uid()");
 				throw new Error("UID mismatch: seller_id diferit de auth.uid()");
 			}
 
-			console.log("🚀 Starting listing creation...");
-			console.log("📋 Form data before mapping:", formData);
-
-			// Pregătim datele pentru anunț cu maparea corectă
 			const listingData = {
 				title: formData.title.trim(),
 				description: formData.description.trim() || "",
@@ -474,38 +555,41 @@ const CreateListingPage = () => {
 				model: formData.model.trim(),
 				engine_capacity: parseInt(formData.engine),
 				fuel_type: mapValueForDatabase("fuel", formData.fuel),
-				transmission: mapValueForDatabase(
-					"transmission",
-					formData.transmission,
-				),
+				transmission: mapValueForDatabase("transmission", formData.transmission),
 				condition: mapValueForDatabase("condition", formData.condition),
 				color: formData.color.trim(),
 				features: formData.features,
-				seller_id: userProfile.id, // AICI ESTE CORECȚIA: Folosește userProfile.user_id
+				seller_id: userProfile.id,
 				seller_name: userProfile.name || "Utilizator",
 				seller_type: userProfile.seller_type,
 				status: "pending",
 				availability: availabilityValue,
 			};
 
-			console.log("availability:", listingData.availability);
-			console.log("📝 Mapped listing data:", listingData);
+			console.log("📝 Listing data prepared:", listingData);
 
-			// Trimitem anunțul și imaginile la server
-			console.log(
-				"📤 Trimit date către listings.create:",
-				listingData,
-				imageFiles,
-			);
-			console.log("🔥 seller_id înainte de inserție:", listingData.seller_id);
-			console.log("🔐 authUser.user.id înainte de inserție:", authUser.user.id);
-			console.log("🔎 seller_id TRIMIS (corectat):", listingData.seller_id);
+			// ✅ Timeout mai scurt și mai eficient
+			const TIMEOUT_MS = 30000; // 30 secunde
+			let timeoutId: NodeJS.Timeout;
 
-			const result = await listings.create(listingData, imageFiles);
-			console.log("📬 Răspuns complet listings.create:", result);
+			const timeoutPromise = new Promise((_, reject) => {
+				timeoutId = setTimeout(() => {
+					reject(new Error("Timeout: Serverul nu răspunde. Te rugăm să reîncerci."));
+				}, TIMEOUT_MS);
+			});
+
+			console.log("⏳ Sending listing to server...");
+			
+			const result = await Promise.race([
+				listings.create(listingData, imageFiles),
+				timeoutPromise,
+			]);
+
+			clearTimeout(timeoutId);
+
+			console.log("📬 Server response:", result);
 
 			const { data, error } = result;
-			console.log("📬 Răspuns de la server:", data, error);
 
 			if (error) {
 				console.error("❌ Error creating listing:", error);
@@ -514,45 +598,43 @@ const CreateListingPage = () => {
 
 			console.log("✅ Listing created successfully:", data);
 
-			setCreatedListingId(data.id);
-			setShowSuccessModal(true);
-		} catch (error: any) {
-			console.error("💥 Error creating listing:", error);
-
-			// Afișează alert la client
-			alert(
-				"Eroare la trimiterea anunțului: " + (error.message || "necunoscută"),
-			);
-
-			// Salvează eroarea în tabelul 'error_logs' (dacă e autentificat)
-			try {
-				const { data: authUser } = await supabase.auth.getUser();
-				if (authUser?.user?.id) {
-					await supabase.from("error_logs").insert([
-						{
-							user_id: authUser.user.id,
-							message: error.message || "Eroare necunoscută",
-							full_error: JSON.stringify(error),
-							created_at: new Date().toISOString(),
-						},
-					]);
-					console.log("✅ Eroarea a fost salvată în Supabase");
-				}
-			} catch (logError) {
-				console.warn("❗ Nu am putut salva eroarea în Supabase:", logError);
+			// ✅ Verificăm dacă componenta este încă mounted
+			if (!isMountedRef.current) {
+				console.log("⚠️ Component unmounted, not updating state");
+				return;
 			}
 
-			// Afișează în pagină mesajul complet
-			setErrors({
-				submit:
-					"Detalii tehnice: " +
-					JSON.stringify(error, null, 2) +
-					"\nMesaj: " +
-					(error.message ||
-						"A apărut o eroare necunoscută la publicarea anunțului."),
+			safeSetState(setCreatedListingId, data.id);
+			safeSetState(setShowSuccessModal, true);
+
+		} catch (error: any) {
+			console.error("💥 Error in submit:", error);
+
+			// Verificăm dacă componenta este încă mounted
+			if (!isMountedRef.current) {
+				console.log("⚠️ Component unmounted, not showing error");
+				return;
+			}
+
+			// Mesaj de eroare mai user-friendly
+			let errorMessage = "Nu am putut trimite anunțul.";
+			
+			if (error.message.includes("Timeout")) {
+				errorMessage = "Serverul nu răspunde. Te rugăm să reîncerci în câteva minute.";
+			} else if (error.message.includes("Network")) {
+				errorMessage = "Problemă de conexiune. Verifică internetul și reîncearcă.";
+			} else if (error.message) {
+				errorMessage = error.message;
+			}
+
+			safeSetState(setErrors, {
+				submit: errorMessage
 			});
+
 		} finally {
-			setIsSubmitting(false);
+			if (isMountedRef.current) {
+				safeSetState(setIsSubmitting, false);
+			}
 		}
 	};
 
@@ -604,7 +686,6 @@ const CreateListingPage = () => {
 						>
 							Completează Profilul
 						</button>
-						<FixSupabaseButton buttonText="Repară Conexiunea" />
 					</div>
 				</div>
 			</div>
